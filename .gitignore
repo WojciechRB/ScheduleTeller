@@ -35,4 +35,4 @@ google-services.json
 *.log
 
 # Sensitive / Custom App Data
-/app/src/main/assets/schedule.json
+app/src/main/assets/schedule.json
