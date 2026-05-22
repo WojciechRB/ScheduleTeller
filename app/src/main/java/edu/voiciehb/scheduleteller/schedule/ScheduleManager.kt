@@ -34,20 +34,27 @@ class ScheduleManager(private val scheduleResponse: ScheduleResponse) {
         val startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val endOfWeek = targetDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 
-        // Definiujemy dokładny format, jaki stworzymy (np. 21.05.2026)
-        val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        // Formaty dat, które mogą pojawić się w Twoim pliku JSON
+        val shortFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        val longFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
         val weeklyLessons = scheduleResponse.schedule.filter { lesson ->
-            lesson.dates.any { dateString ->
+            lesson.dates.any { rawDateString ->
                 try {
-                    // Budujemy pełny ciąg: "21.05" + "." + "2026" = "21.05.2026"
-                    val fullDateString = "$dateString.$currentYear"
-                    val parsedDate = LocalDate.parse(fullDateString, dateFormatter)
+                    val dateString = rawDateString.trim() // Usuwamy przypadkowe spacje
+
+                    val parsedDate = if (dateString.contains("-")) {
+                        // Jeśli w JSON jest np. "2026-05-22"
+                        LocalDate.parse(dateString, longFormatter)
+                    } else {
+                        // Jeśli w JSON jest krótki format np. "22.05", budujemy pełny string
+                        val fullDateString = if (dateString.endsWith(".")) "$dateString$currentYear" else "$dateString.$currentYear"
+                        LocalDate.parse(fullDateString, shortFormatter)
+                    }
 
                     !parsedDate.isBefore(startOfWeek) && !parsedDate.isAfter(endOfWeek)
                 } catch (e: Exception) {
-                    // Log pomocniczy na wypadek błędu parsowania pojedynczej daty
-                    println("DEBUG_ERROR: Nie udało się sparsować daty [$dateString.$currentYear]")
+                    println("DEBUG_ERROR: Nie udało się sparsować daty: [$rawDateString]")
                     false
                 }
             }
