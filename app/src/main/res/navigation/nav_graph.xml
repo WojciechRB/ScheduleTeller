@@ -11,9 +11,4 @@
         android:label="Plan Zajęć"
         tools:layout="@layout/fragment_first" />
 
-    <fragment
-        android:id="@+id/SecondFragment"
-        android:name="edu.voiciehb.scheduleteller.main.SecondFragment"
-        android:label="Drugi Ekran"
-        tools:layout="@layout/fragment_second" />
 </navigation>
