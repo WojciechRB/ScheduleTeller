@@ -48,7 +48,8 @@ class ScheduleManager(private val scheduleResponse: ScheduleResponse) {
                         LocalDate.parse(dateString, longFormatter)
                     } else {
                         // Jeśli w JSON jest krótki format np. "22.05", budujemy pełny string
-                        val fullDateString = if (dateString.endsWith(".")) "$dateString$currentYear" else "$dateString.$currentYear"
+                        val fullDateString =
+                            if (dateString.endsWith(".")) "$dateString$currentYear" else "$dateString.$currentYear"
                         LocalDate.parse(fullDateString, shortFormatter)
                     }
 

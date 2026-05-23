@@ -127,9 +127,11 @@ class FirstFragment : Fragment() {
         val isDayPast = selectedDayOfWeek != null && today.value > selectedDayOfWeek.value
 
         val textColorPrimary = getThemeColor(com.google.android.material.R.attr.colorOnSurface)
-        val textColorSecondary = getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        val textColorSecondary =
+            getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
         val cardBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurface)
-        val breakBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurfaceVariant)
+        val breakBackgroundColor =
+            getThemeColor(com.google.android.material.R.attr.colorSurfaceVariant)
         val breakStrokeColor = getThemeColor(com.google.android.material.R.attr.colorOutline)
         val accentColor = getThemeColor(android.R.attr.colorAccent)
 
@@ -221,8 +223,10 @@ class FirstFragment : Fragment() {
 
                 if (i < sortedLessons.size - 1) {
                     val nextLesson = sortedLessons[i + 1]
-                    val currentEnd = (timeSlotsMap[lesson.slot] ?: lesson.time).split("-").last().trim()
-                    val nextStart = (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
+                    val currentEnd =
+                        (timeSlotsMap[lesson.slot] ?: lesson.time).split("-").last().trim()
+                    val nextStart =
+                        (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
 
                     val breakMinutes = calculateBreakDuration(currentEnd, nextStart)
 
