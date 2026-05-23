@@ -36,3 +36,4 @@ google-services.json
 
 # Sensitive / Custom App Data
 app/src/main/assets/schedule.json
+/.idea

@@ -17,7 +17,6 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
-import edu.voiciehb.scheduleteller.R
 import edu.voiciehb.scheduleteller.databinding.FragmentFirstBinding
 import edu.voiciehb.scheduleteller.schedule.DaySchedule
 import edu.voiciehb.scheduleteller.schedule.ScheduleManager
@@ -127,19 +126,13 @@ class FirstFragment : Fragment() {
         }
         val isDayPast = selectedDayOfWeek != null && today.value > selectedDayOfWeek.value
 
-        // -------------------------------------------------------------------------
-        // OSTATECZNE ROZWIĄZANIE: Używamy TYLKO wbudowanych atrybutów Androida.
-        // Te atrybuty istnieją w 100% projektów i nie wymagają Material Design.
-        // -------------------------------------------------------------------------
-        val textColorPrimary = getThemeColor(android.R.attr.textColorPrimary)
-        val textColorSecondary = getThemeColor(android.R.attr.textColorSecondary)
-        val cardBackgroundColor = getThemeColor(android.R.attr.colorBackground)
-        val breakBackgroundColor = getThemeColor(android.R.attr.colorBackground)
-        val breakStrokeColor = Color.GRAY
+        val textColorPrimary = getThemeColor(com.google.android.material.R.attr.colorOnSurface)
+        val textColorSecondary = getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        val cardBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurface)
+        val breakBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurfaceVariant)
+        val breakStrokeColor = getThemeColor(com.google.android.material.R.attr.colorOutline)
         val accentColor = getThemeColor(android.R.attr.colorAccent)
-        // -------------------------------------------------------------------------
 
-        // Nagłówek dnia
         val titleHeader = TextView(context).apply {
             text = if (isDayPast) {
                 "Plan na: ${daySchedule.dayName} (Dzień już minął)"
@@ -179,11 +172,11 @@ class FirstFragment : Fragment() {
                     }
                     layoutParams = blockParams
 
-                    val blockDrawable = GradientDrawable().apply {
+                    background = GradientDrawable().apply {
                         setColor(cardBackgroundColor)
+                        setStroke(2, breakStrokeColor)
                         cornerRadius = 24f
                     }
-                    background = blockDrawable
 
                     if (isDayPast) alpha = 0.4f
                 }
@@ -228,12 +221,8 @@ class FirstFragment : Fragment() {
 
                 if (i < sortedLessons.size - 1) {
                     val nextLesson = sortedLessons[i + 1]
-
-                    val currentString = timeSlotsMap[lesson.slot] ?: lesson.time
-                    val nextString = timeSlotsMap[nextLesson.slot] ?: nextLesson.time
-
-                    val currentEnd = currentString.split("-").last().trim()
-                    val nextStart = nextString.split("-").first().trim()
+                    val currentEnd = (timeSlotsMap[lesson.slot] ?: lesson.time).split("-").last().trim()
+                    val nextStart = (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
 
                     val breakMinutes = calculateBreakDuration(currentEnd, nextStart)
 
