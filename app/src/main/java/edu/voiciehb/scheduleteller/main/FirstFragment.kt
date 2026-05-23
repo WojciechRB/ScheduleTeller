@@ -5,16 +5,19 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.AttrRes
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
+import edu.voiciehb.scheduleteller.R
 import edu.voiciehb.scheduleteller.databinding.FragmentFirstBinding
 import edu.voiciehb.scheduleteller.schedule.DaySchedule
 import edu.voiciehb.scheduleteller.schedule.ScheduleManager
@@ -111,14 +114,40 @@ class FirstFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun displayDay(daySchedule: DaySchedule) {
         val container = binding.scheduleContainer
         container.removeAllViews()
 
+        val today = LocalDate.now().dayOfWeek
+        val selectedDayOfWeek = try {
+            java.time.DayOfWeek.valueOf(daySchedule.dayCode.uppercase(java.util.Locale.ROOT))
+        } catch (e: Exception) {
+            null
+        }
+        val isDayPast = selectedDayOfWeek != null && today.value > selectedDayOfWeek.value
+
+        // -------------------------------------------------------------------------
+        // OSTATECZNE ROZWIĄZANIE: Używamy TYLKO wbudowanych atrybutów Androida.
+        // Te atrybuty istnieją w 100% projektów i nie wymagają Material Design.
+        // -------------------------------------------------------------------------
+        val textColorPrimary = getThemeColor(android.R.attr.textColorPrimary)
+        val textColorSecondary = getThemeColor(android.R.attr.textColorSecondary)
+        val cardBackgroundColor = getThemeColor(android.R.attr.colorBackground)
+        val breakBackgroundColor = getThemeColor(android.R.attr.colorBackground)
+        val breakStrokeColor = Color.GRAY
+        val accentColor = getThemeColor(android.R.attr.colorAccent)
+        // -------------------------------------------------------------------------
+
+        // Nagłówek dnia
         val titleHeader = TextView(context).apply {
-            text = "Plan na: ${daySchedule.dayName}"
+            text = if (isDayPast) {
+                "Plan na: ${daySchedule.dayName} (Dzień już minął)"
+            } else {
+                "Plan na: ${daySchedule.dayName}"
+            }
             textSize = 18f
-            setTextColor(Color.WHITE)
+            setTextColor(if (isDayPast) Color.parseColor("#888888") else textColorPrimary)
             setTypeface(null, Typeface.BOLD)
             setPadding(8, 0, 0, 24)
         }
@@ -151,16 +180,18 @@ class FirstFragment : Fragment() {
                     layoutParams = blockParams
 
                     val blockDrawable = GradientDrawable().apply {
-                        setColor(Color.parseColor("#1E1E1E"))
+                        setColor(cardBackgroundColor)
                         cornerRadius = 24f
                     }
                     background = blockDrawable
+
+                    if (isDayPast) alpha = 0.4f
                 }
 
                 val timeTv = TextView(context).apply {
                     text = timeSlotsMap[lesson.slot] ?: lesson.time
                     textSize = 12f
-                    setTextColor(Color.parseColor("#BB86FC"))
+                    setTextColor(accentColor)
                     setTypeface(null, Typeface.BOLD)
                 }
                 lessonBlock.addView(timeTv)
@@ -168,7 +199,7 @@ class FirstFragment : Fragment() {
                 val subjectTv = TextView(context).apply {
                     text = lesson.subject
                     textSize = 16f
-                    setTextColor(Color.WHITE)
+                    setTextColor(textColorPrimary)
                     setTypeface(null, Typeface.BOLD)
                     setPadding(0, 6, 0, 4)
                 }
@@ -181,7 +212,7 @@ class FirstFragment : Fragment() {
                             ?: lesson.mode
                     text = "$translatedType | $translatedModeOrRoom"
                     textSize = 13f
-                    setTextColor(Color.LTGRAY)
+                    setTextColor(textColorSecondary)
                 }
                 lessonBlock.addView(detailsTv)
 
@@ -221,10 +252,12 @@ class FirstFragment : Fragment() {
                             layoutParams = breakParams
 
                             background = GradientDrawable().apply {
-                                setColor(Color.parseColor("#121212"))
-                                setStroke(2, Color.parseColor("#333333"))
+                                setColor(breakBackgroundColor)
+                                setStroke(2, breakStrokeColor)
                                 cornerRadius = 16f
                             }
+
+                            if (isDayPast) alpha = 0.4f
                         }
 
                         val breakText = if (breakMinutes >= 90) {
@@ -236,7 +269,7 @@ class FirstFragment : Fragment() {
                         val breakTv = TextView(context).apply {
                             text = breakText
                             textSize = 12f
-                            setTextColor(Color.parseColor("#888888"))
+                            setTextColor(textColorSecondary)
                             setTypeface(null, Typeface.ITALIC)
                         }
 
@@ -258,6 +291,12 @@ class FirstFragment : Fragment() {
         } catch (e: Exception) {
             0
         }
+    }
+
+    private fun getThemeColor(@AttrRes attrRes: Int): Int {
+        val typedValue = TypedValue()
+        requireContext().theme.resolveAttribute(attrRes, typedValue, true)
+        return typedValue.data
     }
 
     override fun onDestroyView() {
