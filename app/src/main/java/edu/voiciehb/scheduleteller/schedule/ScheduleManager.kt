@@ -7,18 +7,16 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 
-// Pomocnicza klasa reprezentująca pełny dzień w widoku
 data class DaySchedule(
-    val dayName: String,       // np. "Poniedziałek", "Wtorek"
-    val dayCode: String,       // Pełna nazwa z JSON-a, np. "Monday", "Tuesday"
-    val lessons: List<Lesson>  // Lista lekcji w tym dniu
+    val dayName: String,
+    val dayCode: String,
+    val lessons: List<Lesson>
 )
 
 class ScheduleManager(private val scheduleResponse: ScheduleResponse) {
 
     private val currentYear = 2026
 
-    // Mapa łącząca pełne angielskie nazwy z JSON z polskimi nagłówkami w UI
     private val dayNamesMap = mapOf(
         "Monday" to "Poniedziałek",
         "Tuesday" to "Wtorek",
@@ -34,20 +32,17 @@ class ScheduleManager(private val scheduleResponse: ScheduleResponse) {
         val startOfWeek = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         val endOfWeek = targetDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 
-        // Formaty dat, które mogą pojawić się w Twoim pliku JSON
         val shortFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         val longFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
         val weeklyLessons = scheduleResponse.schedule.filter { lesson ->
             lesson.dates.any { rawDateString ->
                 try {
-                    val dateString = rawDateString.trim() // Usuwamy przypadkowe spacje
+                    val dateString = rawDateString.trim()
 
                     val parsedDate = if (dateString.contains("-")) {
-                        // Jeśli w JSON jest np. "2026-05-22"
                         LocalDate.parse(dateString, longFormatter)
                     } else {
-                        // Jeśli w JSON jest krótki format np. "22.05", budujemy pełny string
                         val fullDateString =
                             if (dateString.endsWith(".")) "$dateString$currentYear" else "$dateString.$currentYear"
                         LocalDate.parse(fullDateString, shortFormatter)
@@ -61,7 +56,6 @@ class ScheduleManager(private val scheduleResponse: ScheduleResponse) {
             }
         }
 
-        // Mapowanie na pełne nazwy dni, aby dopasować je do wartości z pola 'day' w JSON
         return listOf(
             "Monday",
             "Tuesday",

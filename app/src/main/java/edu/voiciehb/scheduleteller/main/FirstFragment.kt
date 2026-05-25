@@ -30,15 +30,7 @@ class FirstFragment : Fragment() {
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
 
-    private val timeSlotsMap = mapOf(
-        1 to "8:00 - 9:30",
-        2 to "9:45 - 11:15",
-        3 to "11:30 - 13:00",
-        4 to "13:15 - 14:45",
-        5 to "15:00 - 16:30",
-        6 to "16:45 - 18:15",
-        7 to "18:30 - 20:00"
-    )
+    private var scheduleResponse: ScheduleResponse? = null
 
     private val typeTranslationMap = mapOf(
         "laboratory" to "Laboratorium",
@@ -63,7 +55,7 @@ class FirstFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val scheduleResponse = try {
+        val response = try {
             val assetManager = requireContext().assets
             val inputStream = assetManager.open("schedule.json")
             val reader = InputStreamReader(inputStream)
@@ -73,9 +65,10 @@ class FirstFragment : Fragment() {
             null
         }
 
-        if (scheduleResponse == null) return
+        if (response == null) return
+        this.scheduleResponse = response
 
-        val manager = ScheduleManager(scheduleResponse)
+        val manager = ScheduleManager(response)
         val todayDate = LocalDate.now()
         val weekSchedule = manager.getScheduleForWeek(todayDate)
 
@@ -116,6 +109,7 @@ class FirstFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun displayDay(daySchedule: DaySchedule) {
+        val response = scheduleResponse ?: return
         val container = binding.scheduleContainer
         container.removeAllViews()
 
@@ -131,11 +125,9 @@ class FirstFragment : Fragment() {
         val currentTime = LocalTime.now()
 
         val textColorPrimary = getThemeColor(com.google.android.material.R.attr.colorOnSurface)
-        val textColorSecondary =
-            getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        val textColorSecondary = getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
         val cardBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurface)
-        val breakBackgroundColor =
-            getThemeColor(com.google.android.material.R.attr.colorSurfaceVariant)
+        val breakBackgroundColor = getThemeColor(com.google.android.material.R.attr.colorSurfaceVariant)
         val breakStrokeColor = getThemeColor(com.google.android.material.R.attr.colorOutline)
         val accentColor = getThemeColor(android.R.attr.colorAccent)
 
@@ -166,7 +158,8 @@ class FirstFragment : Fragment() {
             for (i in sortedLessons.indices) {
                 val lesson = sortedLessons[i]
 
-                val timeString = timeSlotsMap[lesson.slot] ?: lesson.time
+                val timeSlots = response.getTimeSlotsForMode(studyMode = lesson.study_mode)
+                val timeString = timeSlots[lesson.slot.toString()] ?: lesson.time ?: "00:00-00:00"
                 val lessonEndTimeStr = timeString.split("-").last().trim()
                 val isLessonPast = isDayPast || (isToday && isTimePast(lessonEndTimeStr, currentTime))
 
@@ -232,7 +225,9 @@ class FirstFragment : Fragment() {
                 if (i < sortedLessons.size - 1) {
                     val nextLesson = sortedLessons[i + 1]
                     val currentEnd = timeString.split("-").last().trim()
-                    val nextStart = (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
+
+                    val nextTimeSlots = response.getTimeSlotsForMode(nextLesson.study_mode)
+                    val nextStart = (nextTimeSlots[nextLesson.slot.toString()] ?: nextLesson.time).split("-").first().trim()
 
                     val breakMinutes = calculateBreakDuration(currentEnd, nextStart)
 
