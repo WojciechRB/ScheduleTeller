@@ -23,6 +23,7 @@ import edu.voiciehb.scheduleteller.schedule.ScheduleManager
 import edu.voiciehb.scheduleteller.schedule.ScheduleResponse
 import java.io.InputStreamReader
 import java.time.LocalDate
+import java.time.LocalTime
 
 class FirstFragment : Fragment() {
 
@@ -124,7 +125,10 @@ class FirstFragment : Fragment() {
         } catch (e: Exception) {
             null
         }
+
         val isDayPast = selectedDayOfWeek != null && today.value > selectedDayOfWeek.value
+        val isToday = selectedDayOfWeek != null && today.value == selectedDayOfWeek.value
+        val currentTime = LocalTime.now()
 
         val textColorPrimary = getThemeColor(com.google.android.material.R.attr.colorOnSurface)
         val textColorSecondary =
@@ -162,6 +166,10 @@ class FirstFragment : Fragment() {
             for (i in sortedLessons.indices) {
                 val lesson = sortedLessons[i]
 
+                val timeString = timeSlotsMap[lesson.slot] ?: lesson.time
+                val lessonEndTimeStr = timeString.split("-").last().trim()
+                val isLessonPast = isDayPast || (isToday && isTimePast(lessonEndTimeStr, currentTime))
+
                 val lessonBlock = LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(24, 24, 24, 24)
@@ -180,11 +188,11 @@ class FirstFragment : Fragment() {
                         cornerRadius = 24f
                     }
 
-                    if (isDayPast) alpha = 0.4f
+                    if (isLessonPast) alpha = 0.4f
                 }
 
                 val timeTv = TextView(context).apply {
-                    text = timeSlotsMap[lesson.slot] ?: lesson.time
+                    text = timeString
                     textSize = 12f
                     setTextColor(accentColor)
                     setTypeface(null, Typeface.BOLD)
@@ -223,14 +231,14 @@ class FirstFragment : Fragment() {
 
                 if (i < sortedLessons.size - 1) {
                     val nextLesson = sortedLessons[i + 1]
-                    val currentEnd =
-                        (timeSlotsMap[lesson.slot] ?: lesson.time).split("-").last().trim()
-                    val nextStart =
-                        (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
+                    val currentEnd = timeString.split("-").last().trim()
+                    val nextStart = (timeSlotsMap[nextLesson.slot] ?: nextLesson.time).split("-").first().trim()
 
                     val breakMinutes = calculateBreakDuration(currentEnd, nextStart)
 
                     if (breakMinutes > 0) {
+                        val isBreakPast = isDayPast || (isToday && isTimePast(nextStart, currentTime))
+
                         val breakBlock = LinearLayout(context).apply {
                             orientation = LinearLayout.HORIZONTAL
                             gravity = Gravity.CENTER
@@ -250,7 +258,7 @@ class FirstFragment : Fragment() {
                                 cornerRadius = 16f
                             }
 
-                            if (isDayPast) alpha = 0.4f
+                            if (isBreakPast) alpha = 0.4f
                         }
 
                         val breakText = if (breakMinutes >= 90) {
@@ -271,6 +279,17 @@ class FirstFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun isTimePast(timeStr: String, currentTime: LocalTime): Boolean {
+        return try {
+            val (h, m) = timeStr.split(":").map { it.trim().toInt() }
+            val blockTime = LocalTime.of(h, m)
+            currentTime.isAfter(blockTime)
+        } catch (e: Exception) {
+            false
         }
     }
 
