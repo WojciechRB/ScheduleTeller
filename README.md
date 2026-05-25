@@ -1,6 +1,6 @@
 # ScheduleTeller
 
-ScheduleTeller is a lightweight and user-friendly Android application designed to help students manage their academic schedules efficiently. It provides a clean, dark-themed interface to track classes and automatically calculates gaps between them, highlighting long breaks as "Okienko" (free slots).
+ScheduleTeller is a lightweight and user-friendly Android application designed to help users manage their academic schedules efficiently. It provides a clean, dark-themed interface to track classes and automatically calculates gaps between them, highlighting long breaks as "Okienko" (free slots).
 
 ## 🚀 Key Features
 * **Chronological Schedule View:** Clear daily breakdown of classes.
