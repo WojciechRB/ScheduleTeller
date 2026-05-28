@@ -14,7 +14,7 @@ To ensure data privacy, the schedule data is not hardcoded in the source code. F
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/ScheduleTeller.git
+   git clone https://github.com/WojciechRB/ScheduleTeller.git
    ```
 2. **Prepare your schedule data:**
    * Navigate to the `app/src/main/assets/` folder.
